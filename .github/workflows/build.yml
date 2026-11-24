@@ -23,9 +23,18 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi \
-                                   python3 build-essential
-          # The SDK's tools (picotool, pioasm) are built from source.
-          sudo apt-get install -y libusb-1.0-0-dev
+                                   python3 build-essential libusb-1.0-0-dev
+
+      - name: Install picotool
+        run: |
+          # The SDK's packaging step needs picotool to build the UF2.
+          # Only a source release is published, so build it.
+          PICOTOOL_VERSION=2.3.1
+          git clone --depth 1 --branch "${PICOTOOL_VERSION}" \
+            https://github.com/raspberrypi/picotool.git $HOME/picotool
+          cmake -B $HOME/picotool/build -S $HOME/picotool -DCMAKE_BUILD_TYPE=Release
+          cmake --build $HOME/picotool/build -j
+          sudo cmake --install $HOME/picotool/build
 
       - name: Build the firmware
         run: |
@@ -83,9 +92,8 @@ jobs:
       - name: Build the site
         run: |
           mkdir -p _site
-          # The landing page is the README, rendered by GitHub itself.
           cp docs/site/index.html _site/index.html
-          cp -r docs/site/assets _site/ 2>/dev/null || true
+          cp -r docs/site/assets _site/
 
       - name: Upload the artifact
         uses: actions/upload-pages-artifact@v3
