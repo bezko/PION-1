@@ -1,0 +1,97 @@
+;
+; PION/1 -- PIO programs for the 1-bit capture and playback paths.
+;
+; ---------------------------------------------------------------------------
+; Timing
+; ---------------------------------------------------------------------------
+; The system clock is 125 MHz.  The PIO bit rate is exactly 500 kHz, i.e. one
+; bit every 2 us.  Each state machine is therefore clocked at 500 kHz with
+; clkdiv = 250 (125 MHz / 250 = 500 kHz), and runs ONE instruction per bit.
+;
+; Both the capture and the playback SM use the same divider and are enabled
+; in the same cycle, so the two paths share one timebase.
+;
+; ---------------------------------------------------------------------------
+; Capture
+; ---------------------------------------------------------------------------
+; The analog front end is:
+;
+;     source -> preamp -> comparator ----> D flip-flop --> Q --> PIO input
+;                          ^                  ^
+;                          |                  |
+;                       feedback         PIO side-set clock
+;
+; The D flip-flop is clocked by a PIO side-set pin.  The rising edge latches
+; the comparator output; the PIO then samples the settled Q output.
+;
+; Because the flip-flop and the sample are in the same loop, the timing has
+; to be explicit:
+;
+;   instruction 0:  side-set 1 -> CLK high  (rising edge latches D)
+;   instruction 1:  side-set 0 -> CLK low
+;   instruction 2:  in pins, 1               (sample Q, now settled)
+;
+; The sample therefore happens one PIO cycle (2 us) after the clock edge,
+; which is far more than the flip-flop's t_co and than the PIO's 2-stage
+; input synchroniser delay (~24 ns at 125 MHz).  The total loop latency is
+; one bit period, which must be accounted for in the analog feedback path.
+;
+; The SM therefore runs THREE instructions per bit, so clkdiv = 125 is used
+; (125 MHz / 125 = 1 MHz instruction rate, 3 instructions -> 333 kHz) -- no,
+; wait.  We need the sample to happen exactly once per 2 us.
+;
+; Correct arithmetic: we want one SAMPLE per 2 us.  With three instructions
+; per bit period we need an instruction rate of 1.5 MHz, which is not an
+; integer divider of 125 MHz.  Instead we use TWO instructions per bit with
+; clkdiv = 125:
+;
+;   instruction 0:  side-set 1 -> CLK high   (rising edge latches D)
+;   instruction 1:  side-set 0 -> CLK low, and sample Q in the same cycle
+;
+; 125 MHz / 125 = 1 MHz instruction rate; two instructions per bit gives
+; exactly 500 kHz.  The sample occurs one instruction (1 us) after the
+; clock edge, which is ample for t_co and for the input synchroniser.
+;
+; To make the sampling instant explicit and to keep one instruction per
+; bit *for the sample itself*, the sample is taken on the second
+; instruction of the pair:
+;
+
+.program pion1_capture
+.side_set 1
+.wrap_target
+    set x, 0 side 1     ; CLK high: rising edge latches the comparator into D
+    in pins, 1 side 0   ; CLK low, and sample the settled Q output
+
+;
+; ---------------------------------------------------------------------------
+; Playback
+; ---------------------------------------------------------------------------
+; The playback SM pushes 1 bit per cycle onto the output pin.  Autopull
+; refills the output shift register every 32 bits, so the DMA can feed it a
+; whole word at a time.
+;
+; The shift direction is RIGHT, matching the capture direction: bit 0 of the
+; word is the earliest sample.  That means a word captured from the input
+; can be replayed on the output with no bit reversal anywhere.
+;
+
+.program pion1_playback
+.wrap_target
+    out pins, 1
+
+;
+; ---------------------------------------------------------------------------
+; Modulator clock
+; ---------------------------------------------------------------------------
+; A free-running square wave used to clock the analog modulator in
+; experiments where the modulator needs a symmetric drive.  It is not used
+; by the default capture path (the capture SM provides its own clock) but is
+; available for the modulator experiments described in docs/HARDWARE.md.
+;
+
+.program pion1_modclock
+.side_set 1
+.wrap_target
+    set x, 0 side 1
+    set x, 0 side 0
