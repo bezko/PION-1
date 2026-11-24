@@ -306,3 +306,22 @@ paths.
 ## Licence
 
 MIT. See [LICENSE](LICENSE).
+
+---
+
+## Repository location
+
+The project was requested as `PION/1`. The `pion` GitHub organisation is
+the [Pion WeRTC](https://github.com/pion) project — an unrelated Go
+WebRTC stack — and this account has no admin rights there, so a repo could
+not be created in it.
+
+The repository therefore lives at **`bezko/PION-1`**. When admin access to
+the intended organisation is available, it can be moved there with:
+
+```sh
+gh repo transfer bezko/PION-1 PION/PION-1
+```
+
+The `PION-1` name, the `PION/1` branding and the project structure are all
+intended to carry over unchanged.
