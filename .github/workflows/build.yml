@@ -28,11 +28,15 @@ jobs:
       - name: Install picotool
         run: |
           # The SDK's packaging step needs picotool to build the UF2.
-          # Only a source release is published, so build it.
+          # Only a source release is published, so build it.  picotool's
+          # own CMake needs the SDK path, which is why this runs after
+          # the SDK has been cloned.
           PICOTOOL_VERSION=2.3.1
           git clone --depth 1 --branch "${PICOTOOL_VERSION}" \
             https://github.com/raspberrypi/picotool.git $HOME/picotool
-          cmake -B $HOME/picotool/build -S $HOME/picotool -DCMAKE_BUILD_TYPE=Release
+          cmake -B $HOME/picotool/build -S $HOME/picotool \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DPICO_SDK_PATH=$HOME/pico-sdk
           cmake --build $HOME/picotool/build -j
           sudo cmake --install $HOME/picotool/build
 
