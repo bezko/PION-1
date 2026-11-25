@@ -6,13 +6,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-# One deployment at a time.  Two pushes in quick succession would
-# otherwise race for the same github-pages environment, and the second
-# deployment would be rejected as a concurrent one.
-concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   firmware:
     name: firmware (rp2040)
@@ -90,6 +83,14 @@ jobs:
     # depend on the firmware build, so a toolchain problem should not stop
     # the documentation from being published.
     needs: [tests]
+    # Only the deployments are serialised, not the whole pipeline.  Two
+    # pushes in quick succession would otherwise race for the same
+    # github-pages environment, and one deployment would be rejected as a
+    # concurrent one.  cancel-in-progress is false so that a deployment
+    # that is already under way is allowed to finish.
+    concurrency:
+      group: github-pages-${{ github.ref }}
+      cancel-in-progress: false
     permissions:
       contents: read
       pages: write

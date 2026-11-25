@@ -305,8 +305,8 @@ picotool reboot -u -f
 This is an early release. The signal chain is complete and verified by the
 host test suite, but the following are still open:
 
-* The console UI is a placeholder — there is a serial interface with a few
-  keys, not a real interface.
+* The console speaks USB CDC and greets you whenever you attach, but its UI
+  is still a few keystrokes rather than a real interface.
 * The waveguide voice is implemented but has not been tuned.
 * The analog front end has not been built and measured on real hardware;
   the timing in `docs/HARDWARE.md` is calculated, not verified.
@@ -325,6 +325,9 @@ paths.
 * [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how the signal flows, and why
 * [docs/HARDWARE.md](docs/HARDWARE.md) — analog front end, timing budget, BOM
 * [docs/BITDOMAIN.md](docs/BITDOMAIN.md) — notes on working in 1-bit signals
+
+The short version is also published as a web page at
+<https://bezko.github.io/PION-1/>, deployed by CI from `docs/site/`.
 
 ---
 

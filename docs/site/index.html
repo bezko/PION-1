@@ -107,8 +107,26 @@ out  = (err &gt;= 0)</code></pre>
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j</code></pre>
   <p>
-    The result is <code>build/PION1.uf2</code>, which you drag onto the Pico
-    in BOOTSEL mode.
+    The result is <code>build/PION1.uf2</code>. Either drag it onto the Pico
+    in BOOTSEL mode, or let the helper do it &mdash; it waits for the
+    bootloader, copies the UF2 and waits for the console to come back:
+  </p>
+  <pre><code>tools/pion1_flash.sh</code></pre>
+  <p>
+    A running PION/1 can also be dropped into the bootloader over USB, so
+    you never have to reach for the buttons:
+  </p>
+  <pre><code>picotool reboot -u -f</code></pre>
+
+  <h3>The console</h3>
+  <p>
+    The console is USB CDC, and the host finds it by a stable name rather
+    than by whatever <code>ttyACM</code> number the kernel happened to
+    hand out:
+  </p>
+  <pre><code>python3 tools/pion1_console.py</code></pre>
+  <p>
+    The port is <code>/dev/serial/by-id/usb-Raspberry_Pi_PION-1-if00</code>.
   </p>
 
   <h3>Host tests</h3>
@@ -134,9 +152,11 @@ cmake --build tests/build -j
   <p>
     An early release. The signal chain is complete and covered by a host
     test suite that checks the actual signal rather than just the code
-    paths. The console UI is a placeholder, the sampler does not yet track
-    the DMA write position, and the analog front end has not been built —
-    all the timing in the documentation is calculated, not measured.
+    paths. The console speaks USB CDC and greets you whenever you attach,
+    but its UI is still a few keystrokes rather than a real interface; the
+    sampler does not yet track the DMA write position; and the analog front
+    end has not been built &mdash; all the timing in the documentation is
+    calculated, not measured.
   </p>
 </section>
 
