@@ -68,6 +68,35 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 # ---------------------------------------------------------------------------
+# Console: USB CDC, with the UART on GP4/GP5.
+#
+# The USB CDC is the primary console.  Without it the firmware has no USB
+# device at all: the Pico would enumerate as "RP2 Boot" in BOOTSEL mode and
+# then vanish the moment the application started, which looks like a flaky
+# cable but is really just a missing USB interface.
+#
+# The UART is kept as a fallback (wired to a 3.3 V UART adapter, never to
+# the Pi's 5 V GPIO header) and is moved off the Pico's default GP0/GP1,
+# because GP0 and GP1 carry the capture path -- see docs/HARDWARE.md.
+# ---------------------------------------------------------------------------
+pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 1)
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    PICO_DEFAULT_UART_TX_PIN=4
+    PICO_DEFAULT_UART_RX_PIN=5
+)
+
+# A product string that says what the device is, so that the host-side
+# /dev/serial/by-id path is stable and recognisable.  The serial number
+# still comes from the chip's unique board ID, so the path is unique too.
+# No spaces or slashes: udev builds the by-id name from these strings, and
+# a slash would turn into a directory.
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    USBD_PRODUCT="PION-1"
+)
+
+# ---------------------------------------------------------------------------
 # Warnings: the project is built with -Wall -Wextra -Werror so that a
 # regression never reaches the hardware.
 #

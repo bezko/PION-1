@@ -264,6 +264,7 @@ The default pin assignment:
 | GP0 | capture input (flip-flop Q) |
 | GP1 | flip-flop clock (PIO side-set) |
 | GP2 | playback output |
+| GP4/GP5 | UART console fallback |
 
 A minimal input stage needs a comparator (LM311, or an LM393 for single
 supply), a 74HC74 flip-flop, and a feedback resistor to the summing node.
@@ -272,6 +273,30 @@ op-amp stage to bring the signal up to line level.
 
 Full details, including the timing budget and a bill of materials, are in
 [docs/HARDWARE.md](docs/HARDWARE.md).
+
+---
+
+## Running it
+
+The console is USB CDC. On the host the port appears as a stable symlink,
+so it does not matter what order things are plugged in:
+
+```sh
+tools/pion1_flash.sh                  # build, flash, wait for the console
+python3 tools/pion1_console.py        # attach and print
+```
+
+`tools/pion1_flash.sh` waits for the Pico in BOOTSEL mode, copies the
+UF2, and waits for the CDC to come back. If the Pico is running a build
+without USB support it is invisible to the host, so hold the **BOOTSEL**
+button while pressing **RESET** — the script takes it from there.
+
+The firmware exposes the RP-series reset interface, so a running PION/1
+can be dropped into the bootloader over USB instead:
+
+```sh
+picotool reboot -u -f
+```
 
 ---
 

@@ -24,6 +24,7 @@
 #include "pico/stdlib.h"
 #include "pico/time.h"
 #include "pico/multicore.h"
+#include "pico/stdio_usb.h"
 #include "hardware/timer.h"
 #include "hardware/clocks.h"
 #include "hardware/sync.h"
@@ -247,45 +248,67 @@ int main(void)
     pion1_bitstream_init();
     pion1_bitstream_start();
 
-    printf("PION/1 ready: %u Hz bit rate, %u words/s\n",
-           PION1_FS_HZ, PION1_WORDS_PER_SEC);
-
     /* --- start the audio core --- */
     multicore_launch_core1(core1_main);
 
-    /* --- control loop --- */
-    while (1) {
-        int c = getchar_timeout_us(0);
+    /*
+     * The banner is printed from the control loop rather than here, so
+     * that it is re-printed every time the host opens the port.  A host
+     * that attaches late, or re-attaches after a disconnect, gets the
+     * same greeting as one that was there from the start -- which is
+     * what makes "is it connected?" answerable on the host side.
+     */
+    {
+        bool banner_printed = false;
 
-        watchdog_update();
+        while (1) {
+            int c = getchar_timeout_us(0);
+            bool connected = stdio_usb_connected();
 
-        if (c >= 0) {
-            switch (c) {
-            case 'q':
-                printf("bye\n");
-                return 0;
-            case '+':
-                pion1_params_stage_set(PION1_P_WAVE1_FREQ,
-                                       pion1_params_stage_get(PION1_P_WAVE1_FREQ) + 10u);
-                pion1_params_publish();
-                break;
-            case '-':
-                pion1_params_stage_set(PION1_P_WAVE1_FREQ,
-                                       (pion1_params_stage_get(PION1_P_WAVE1_FREQ) > 10u)
-                                       ? pion1_params_stage_get(PION1_P_WAVE1_FREQ) - 10u : 0u);
-                pion1_params_publish();
-                break;            case 's':
-                pion1_params_stage_set(PION1_P_SAMP_LEVEL,
-                                       pion1_params_stage_get(PION1_P_SAMP_LEVEL) ? 0u : 65535u);
-                pion1_params_publish();
-                break;
-            default:
-                break;
+            watchdog_update();
+
+            if (connected && !banner_printed) {
+                printf("\nPION/1 ready: %u Hz bit rate, %u words/s\n",
+                       PION1_FS_HZ, PION1_WORDS_PER_SEC);
+                printf("freq=%lu samp=%lu wg=%lu\n",
+                       (unsigned long)pion1_params_stage_get(PION1_P_WAVE1_FREQ),
+                       (unsigned long)pion1_params_stage_get(PION1_P_SAMP_LEVEL),
+                       (unsigned long)pion1_params_stage_get(PION1_P_WG_LEVEL));
+                banner_printed = true;
+            } else if (!connected) {
+                /* The host went away; greet it again when it returns. */
+                banner_printed = false;
             }
-            printf("freq=%lu samp=%lu wg=%lu\n",
-                   (unsigned long)pion1_params_stage_get(PION1_P_WAVE1_FREQ),
-                   (unsigned long)pion1_params_stage_get(PION1_P_SAMP_LEVEL),
-                   (unsigned long)pion1_params_stage_get(PION1_P_WG_LEVEL));
+
+            if (c >= 0) {
+                switch (c) {
+                case 'q':
+                    printf("bye\n");
+                    return 0;
+                case '+':
+                    pion1_params_stage_set(PION1_P_WAVE1_FREQ,
+                                           pion1_params_stage_get(PION1_P_WAVE1_FREQ) + 10u);
+                    pion1_params_publish();
+                    break;
+                case '-':
+                    pion1_params_stage_set(PION1_P_WAVE1_FREQ,
+                                           (pion1_params_stage_get(PION1_P_WAVE1_FREQ) > 10u)
+                                           ? pion1_params_stage_get(PION1_P_WAVE1_FREQ) - 10u : 0u);
+                    pion1_params_publish();
+                    break;
+                case 's':
+                    pion1_params_stage_set(PION1_P_SAMP_LEVEL,
+                                           pion1_params_stage_get(PION1_P_SAMP_LEVEL) ? 0u : 65535u);
+                    pion1_params_publish();
+                    break;
+                default:
+                    break;
+                }
+                printf("freq=%lu samp=%lu wg=%lu\n",
+                       (unsigned long)pion1_params_stage_get(PION1_P_WAVE1_FREQ),
+                       (unsigned long)pion1_params_stage_get(PION1_P_SAMP_LEVEL),
+                       (unsigned long)pion1_params_stage_get(PION1_P_WG_LEVEL));
+            }
         }
     }
 }

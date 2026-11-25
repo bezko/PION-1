@@ -17,10 +17,56 @@ numbers are called out so they can be checked against real parts.
 | GP1 | out | flip-flop clock, driven by PIO side-set |
 | GP2 | out | playback output — the 1-bit signal |
 | GP3 | out (optional) | modulator clock, for the experiments below |
-| GP4/GP5 | UART | console (stdio) |
+| GP4/GP5 | UART | console fallback (stdio) |
 
 GP1 and GP3 are driven by the PIO, so they must not be used as ordinary
 GPIO. `pio_gpio_init()` takes care of the function select.
+
+The console is normally the **USB CDC**, not the UART. GP4/GP5 are a
+fallback for a UART adapter, and are set explicitly in `CMakeLists.txt`
+because the Pico's board header puts UART0 on GP0/GP1 by default, which
+would collide with the capture path.
+
+---
+
+## The console
+
+The firmware talks to the host over USB CDC. On the host it appears as
+`/dev/serial/by-id/usb-Raspberry_Pi_PION-1-if00` — the name is built from
+the USB product string and the chip's unique board ID, so it is stable
+across reboots and replugs and does not change when other USB devices
+are plugged in.
+
+```sh
+python3 tools/pion1_console.py     # attach and print
+minicom -D /dev/serial/by-id/usb-Raspberry_Pi_PION-1-if00 -b 115200
+```
+
+The firmware prints its banner whenever the host asserts DTR, so a host
+that attaches late, or re-attaches after a disconnect, gets the greeting
+as though it had been there all along.
+
+### Flashing
+
+```sh
+tools/pion1_flash.sh
+```
+
+This builds, waits for the Pico to appear in BOOTSEL mode, copies the
+UF2, and waits for the CDC to come back. If the Pico is running a build
+without USB support it will be invisible to the host, and BOOTSEL mode is
+the only way in: hold the **BOOTSEL** button while pressing **RESET**
+(or while plugging the cable in).
+
+The firmware exposes the RP-series reset interface, so a running PION/1
+can be dropped into the bootloader over USB without touching the
+buttons:
+
+```sh
+picotool reboot -u -f
+```
+
+That is what `--reboot` does in `tools/pion1_flash.sh`.
 
 ---
 
@@ -192,8 +238,8 @@ Do it in this order, and check each stage before moving on. The signal
 chain is short enough that a single mistake is hard to find later.
 
 1. **Clock.** Flash the firmware and confirm it boots and prints over the
-   console. If there is no output, check the USB cable — many are
-   charge-only.
+   console (`python3 tools/pion1_console.py`). If there is no output,
+   check the USB cable — many are charge-only.
 
 2. **Playback.** Without any input hardware, connect GP2 through a 100 nF
    capacitor to a scope or to the reconstruction filter. You should see a
