@@ -6,6 +6,9 @@
 <title>PION/1 — a one-bit oversampled synthesizer</title>
 <meta name="description" content="PION/1 is a synthesizer that lives entirely in the 1-bit domain, running on the Raspberry Pi Pico at exactly 500 kHz.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Share+Tech+Mono&display=swap">
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -14,10 +17,20 @@
   <div class="wrap">
     <h1 class="logo">PION<span class="slash">/</span>1</h1>
     <p class="tag">A one-bit oversampled synthesizer on the Raspberry Pi Pico.</p>
+
+    <ul class="readouts">
+      <li>Bit rate <b>500 000 /s</b></li>
+      <li>Word rate <b>15 625 Hz</b></li>
+      <li>Quarter cycle <b>2048 bits</b></li>
+      <li>Full cycle <b>8192 bits</b></li>
+      <li>Base frequency <b>61.04 Hz</b></li>
+    </ul>
+
     <nav>
       <a href="#about">About</a>
       <a href="#how">How it works</a>
       <a href="#build">Build</a>
+      <a href="#status">Status</a>
       <a href="https://github.com/bezko/PION-1">Source</a>
     </nav>
   </div>
@@ -26,7 +39,7 @@
 <main class="wrap">
 
 <section id="about">
-  <h2>Everything is a bit</h2>
+  <h2><span class="idx">01</span> Everything is a bit</h2>
   <p class="lead">
     PION/1 has no 16-bit samples and no 24-bit accumulators. Every voice
     produces a stream of bits, every control parameter is a number of
@@ -38,10 +51,45 @@
     one bit every 2&nbsp;µs. A 32-bit word is therefore 64&nbsp;µs of audio,
     and the word rate is 15&nbsp;625&nbsp;Hz.
   </p>
+
+  <div class="scope">
+    <div class="scope-bar">
+      <span>Reconstructed density &middot; 64-bit window</span>
+      <span class="rec">Live</span>
+    </div>
+    <svg viewBox="0 0 1000 180" role="img"
+         aria-label="The reconstructed waveform: the one-bit quarter-sine table run through a sliding 64-bit density window, showing exactly one full cycle.">
+      <g class="grid">
+        <line x1="0"    y1="0" x2="0"    y2="180"></line>
+        <line x1="100"  y1="0" x2="100"  y2="180"></line>
+        <line x1="200"  y1="0" x2="200"  y2="180"></line>
+        <line x1="300"  y1="0" x2="300"  y2="180"></line>
+        <line x1="400"  y1="0" x2="400"  y2="180"></line>
+        <line x1="500"  y1="0" x2="500"  y2="180"></line>
+        <line x1="600"  y1="0" x2="600"  y2="180"></line>
+        <line x1="700"  y1="0" x2="700"  y2="180"></line>
+        <line x1="800"  y1="0" x2="800"  y2="180"></line>
+        <line x1="900"  y1="0" x2="900"  y2="180"></line>
+        <line x1="1000" y1="0" x2="1000" y2="180"></line>
+      </g>
+      <line class="axis" x1="0" y1="90" x2="1000" y2="90"></line>
+      <path class="trace" d="M0,90.0 L3,90.0 L5,90.0 L8,90.0 L10,87.5 L13,85.0 L15,87.5 L18,87.5 L20,85.0 L23,85.0 L25,85.0 L28,82.6 L30,82.6 L33,82.6 L35,80.1 L38,82.6 L40,80.1 L43,80.1 L45,80.1 L48,80.1 L50,77.6 L53,77.6 L55,77.6 L58,77.6 L60,75.2 L63,75.2 L65,75.2 L68,75.2 L70,72.7 L73,72.7 L75,72.7 L78,70.2 L80,70.2 L83,70.2 L85,70.2 L88,70.2 L90,67.7 L93,70.2 L95,67.7 L98,67.7 L100,67.7 L103,65.2 L105,67.7 L108,67.7 L110,65.2 L113,62.8 L115,62.8 L118,62.8 L120,62.8 L123,62.8 L125,62.8 L128,60.3 L130,62.8 L133,60.3 L135,60.3 L138,60.3 L140,60.3 L143,57.8 L145,57.8 L148,57.8 L150,57.8 L153,55.4 L155,55.4 L158,55.4 L160,55.4 L163,55.4 L165,57.8 L168,55.4 L170,55.4 L173,55.4 L175,55.4 L178,52.9 L180,55.4 L183,52.9 L185,55.4 L188,52.9 L190,52.9 L193,52.9 L195,52.9 L198,52.9 L201,52.9 L203,50.4 L206,52.9 L208,52.9 L211,50.4 L213,52.9 L216,50.4 L218,50.4 L221,50.4 L223,50.4 L226,50.4 L228,50.4 L231,50.4 L233,50.4 L236,50.4 L238,50.4 L241,50.4 L243,50.4 L246,50.4 L248,50.4 L251,50.4 L253,50.4 L256,50.4 L258,50.4 L261,50.4 L263,47.9 L266,50.4 L268,50.4 L271,50.4 L273,50.4 L276,50.4 L278,50.4 L281,50.4 L283,52.9 L286,52.9 L288,55.4 L291,52.9 L293,52.9 L296,52.9 L298,52.9 L301,52.9 L303,52.9 L306,52.9 L308,52.9 L311,52.9 L313,52.9 L316,55.4 L318,55.4 L321,55.4 L323,50.4 L326,52.9 L328,52.9 L331,55.4 L333,55.4 L336,55.4 L338,60.3 L341,55.4 L343,55.4 L346,55.4 L348,55.4 L351,57.8 L353,57.8 L356,55.4 L358,60.3 L361,62.8 L363,60.3 L366,60.3 L368,57.8 L371,60.3 L373,62.8 L376,62.8 L378,62.8 L381,62.8 L383,62.8 L386,65.2 L388,65.2 L391,65.2 L393,65.2 L396,65.2 L398,65.2 L401,65.2 L404,70.2 L406,70.2 L409,67.7 L411,70.2 L414,67.7 L416,67.7 L419,67.7 L421,70.2 L424,75.2 L426,75.2 L429,72.7 L431,72.7 L434,72.7 L436,77.6 L439,75.2 L441,75.2 L444,75.2 L446,75.2 L449,75.2 L451,80.1 L454,80.1 L456,82.6 L459,77.6 L461,80.1 L464,77.6 L466,80.1 L469,82.6 L471,85.0 L474,85.0 L476,82.6 L479,82.6 L481,85.0 L484,87.5 L486,85.0 L489,87.5 L491,85.0 L494,87.5 L496,87.5 L499,92.5 L501,90.0 L504,90.0 L506,90.0 L509,90.0 L511,92.5 L514,95.0 L516,92.5 L519,92.5 L521,95.0 L524,95.0 L526,95.0 L529,97.4 L531,97.4 L534,97.4 L536,99.9 L539,97.4 L541,99.9 L544,99.9 L546,99.9 L549,99.9 L551,102.4 L554,102.4 L556,102.4 L559,102.4 L561,104.8 L564,104.8 L566,104.8 L569,104.8 L571,107.3 L574,107.3 L576,107.3 L579,109.8 L581,109.8 L584,109.8 L586,109.8 L589,109.8 L591,112.3 L594,109.8 L596,112.3 L599,112.3 L602,112.3 L604,114.8 L607,112.3 L609,112.3 L612,114.8 L614,117.2 L617,117.2 L619,117.2 L622,117.2 L624,117.2 L627,117.2 L629,119.7 L632,117.2 L634,119.7 L637,119.7 L639,119.7 L642,119.7 L644,122.2 L647,122.2 L649,122.2 L652,122.2 L654,124.7 L657,124.7 L659,124.7 L662,124.7 L664,124.7 L667,122.2 L669,124.7 L672,124.7 L674,124.7 L677,124.7 L679,127.1 L682,124.7 L684,127.1 L687,124.7 L689,127.1 L692,127.1 L694,127.1 L697,127.1 L699,127.1 L702,127.1 L704,129.6 L707,127.1 L709,127.1 L712,129.6 L714,127.1 L717,129.6 L719,129.6 L722,129.6 L724,129.6 L727,129.6 L729,129.6 L732,129.6 L734,129.6 L737,129.6 L739,129.6 L742,129.6 L744,129.6 L747,129.6 L749,129.6 L752,129.6 L754,129.6 L757,129.6 L759,129.6 L762,129.6 L764,132.1 L767,129.6 L769,129.6 L772,129.6 L774,129.6 L777,129.6 L779,129.6 L782,129.6 L784,127.1 L787,127.1 L789,124.7 L792,127.1 L794,127.1 L797,127.1 L799,127.1 L802,127.1 L805,127.1 L807,127.1 L810,127.1 L812,127.1 L815,127.1 L817,124.7 L820,124.7 L822,124.7 L825,129.6 L827,127.1 L830,127.1 L832,124.7 L835,124.7 L837,124.7 L840,119.7 L842,124.7 L845,124.7 L847,124.7 L850,124.7 L852,122.2 L855,122.2 L857,124.7 L860,119.7 L862,117.2 L865,119.7 L867,119.7 L870,122.2 L872,119.7 L875,117.2 L877,117.2 L880,117.2 L882,117.2 L885,117.2 L887,114.8 L890,114.8 L892,114.8 L895,114.8 L897,114.8 L900,114.8 L902,114.8 L905,109.8 L907,109.8 L910,112.3 L912,109.8 L915,112.3 L917,112.3 L920,112.3 L922,109.8 L925,104.8 L927,104.8 L930,107.3 L932,107.3 L935,107.3 L937,102.4 L940,104.8 L942,104.8 L945,104.8 L947,104.8 L950,104.8 L952,99.9 L955,99.9 L957,97.4 L960,102.4 L962,99.9 L965,102.4 L967,99.9 L970,97.4 L972,95.0 L975,95.0 L977,97.4 L980,97.4 L982,95.0 L985,92.5 L987,95.0 L990,92.5 L992,95.0 L995,92.5 L997,92.5 L1000,87.5"></path>
+    </svg>
+  </div>
+
+  <p class="slots-caption">Density &rarr; level &nbsp;&middot;&nbsp; one output word, 32 slots</p>
+  <div class="slots"><i class="on"></i><i class="idle"></i><i class="on"></i><i class="idle"></i><i class="idle"></i><i class="on"></i><i class="on"></i><i class="idle"></i><i class="idle"></i><i class="idle"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="idle"></i><i class="idle"></i><i class="on"></i><i class="idle"></i><i class="on"></i><i class="idle"></i><i class="idle"></i><i class="idle"></i><i class="on"></i><i class="idle"></i><i class="on"></i><i class="idle"></i><i class="idle"></i><i class="on"></i><i class="idle"></i><i class="on"></i><i class="on"></i><i class="idle"></i><i class="on"></i></div>
+  <p class="note">
+    The trace is not an illustration: it is the project's own
+    <code>src/dsp/sine_table.c</code> run through a 64-bit sliding density
+    window, which is what the analog front end sees. Lit slots are owned by
+    the voice; dim slots fall back to the idle pattern, the floor of the
+    signal.
+  </p>
 </section>
 
 <section id="how">
-  <h2>Three ideas</h2>
+  <h2><span class="idx">02</span> Three ideas</h2>
 
   <div class="cards">
     <div class="card">
@@ -88,7 +136,7 @@
     PION/1 counts the ones in a sliding window, then re-quantises that
     count back to a single bit with a first-order feedback loop:
   </p>
-  <pre><code>err += (count - L/2) - (out ? +L/2 : -L/2)
+  <pre data-label="resample.c"><code>err += (count - L/2) - (out ? +L/2 : -L/2)
 out  = (err &gt;= 0)</code></pre>
   <p>
     In the count domain a full-scale window of <code>L</code> ones is
@@ -100,23 +148,23 @@ out  = (err &gt;= 0)</code></pre>
 </section>
 
 <section id="build">
-  <h2>Build it</h2>
+  <h2><span class="idx">03</span> Build it</h2>
 
   <h3>Firmware</h3>
-  <pre><code>export PICO_SDK_PATH=~/pico-sdk
+  <pre data-label="cmake"><code>export PICO_SDK_PATH=~/pico-sdk
 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j</code></pre>
   <p>
     The result is <code>build/PION1.uf2</code>. Either drag it onto the Pico
-    in BOOTSEL mode, or let the helper do it &mdash; it waits for the
+    in BOOTSEL mode, or let the helper do it — it waits for the
     bootloader, copies the UF2 and waits for the console to come back:
   </p>
-  <pre><code>tools/pion1_flash.sh</code></pre>
+  <pre data-label="flash"><code>tools/pion1_flash.sh</code></pre>
   <p>
     A running PION/1 can also be dropped into the bootloader over USB, so
     you never have to reach for the buttons:
   </p>
-  <pre><code>picotool reboot -u -f</code></pre>
+  <pre data-label="picotool"><code>picotool reboot -u -f</code></pre>
 
   <h3>The console</h3>
   <p>
@@ -124,7 +172,7 @@ cmake --build build -j</code></pre>
     than by whatever <code>ttyACM</code> number the kernel happened to
     hand out:
   </p>
-  <pre><code>python3 tools/pion1_console.py</code></pre>
+  <pre data-label="console"><code>python3 tools/pion1_console.py</code></pre>
   <p>
     The port is <code>/dev/serial/by-id/usb-Raspberry_Pi_PION-1-if00</code>.
   </p>
@@ -135,7 +183,7 @@ cmake --build build -j</code></pre>
     the host. That turns &ldquo;it builds&rdquo; into &ldquo;it produces
     the right numbers&rdquo;.
   </p>
-  <pre><code>cmake -B tests/build -S tests -DCMAKE_BUILD_TYPE=Release
+  <pre data-label="ctest"><code>cmake -B tests/build -S tests -DCMAKE_BUILD_TYPE=Release
 cmake --build tests/build -j
 ./tests/build/test_dsp</code></pre>
 
@@ -144,20 +192,39 @@ cmake --build tests/build -j
     The renderer uses exactly the same DSP code as the firmware, so you can
     hear what the hardware will produce before it exists.
   </p>
-  <pre><code>./tests/build/render_host --freq 440 --seconds 2 --out tone.wav</code></pre>
+  <pre data-label="render"><code>./tests/build/render_host --freq 440 --seconds 2 --out tone.wav</code></pre>
 </section>
 
 <section id="status">
-  <h2>Status</h2>
+  <h2><span class="idx">04</span> Status</h2>
   <p>
     An early release. The signal chain is complete and covered by a host
     test suite that checks the actual signal rather than just the code
-    paths. The console speaks USB CDC and greets you whenever you attach,
-    but its UI is still a few keystrokes rather than a real interface; the
-    sampler does not yet track the DMA write position; and the analog front
-    end has not been built &mdash; all the timing in the documentation is
-    calculated, not measured.
+    paths.
   </p>
+
+  <ul class="readout">
+    <li class="ok">
+      <span><b>DSP core</b> — sine table, mixer, resampler and FM voice,
+      checked by 55 host tests that measure the signal.</span>
+    </li>
+    <li class="ok">
+      <span><b>Console</b> — speaks USB CDC and greets you whenever you
+      attach; the host finds it by a stable by-id path.</span>
+    </li>
+    <li>
+      <span><b>User interface</b> — a handful of keystrokes, not a real
+      interface.</span>
+    </li>
+    <li>
+      <span><b>Sampler</b> — does not yet track the DMA write position, so
+      it reads the whole capture ring rather than the newest audio.</span>
+    </li>
+    <li>
+      <span><b>Analog front end</b> — not yet built; every timing figure in
+      the documentation is calculated, not measured.</span>
+    </li>
+  </ul>
 </section>
 
 </main>
